@@ -73,25 +73,30 @@ inicio:
 
 ; MODO 4: INDEXADO (BASE + ÍNDICE + DESPLAZAMIENTO) 
 ; Dirección efectiva = Base + Índice + Desplazamiento
- ; Acceso a elemento específico del array: array[2] = 30
- MOV bx, array ; BX = dirección base del array
- MOV si, 4 ; SI = índice * sizeof(word) = 2 * 2 = 4
- MOV ax, [bx + si] ; AX ← mem[BX+SI] = array[2] = 30
 
- ; Suma acumulada de todos los elementos del array
- XOR ax, ax ; AX = 0 (acumulador)
- MOV bx, array ; BX = dirección base
- MOV cx, 5 ; CX = número de elementos
- XOR si, si ; SI = 0 (índice de bytes)
-.bucle_array:
- ADD ax, [bx + si] ; AX += array[si/2]
- ADD si, 2 ; avanzar índice 2 bytes (word)
- LOOP .bucle_array
+; Acceso a elemento específico del array: array[4] = 30
+MOV bx, array        ; BX = dirección base del array 
+MOV si, 4            ; SI = índice * sizeof(word) = 2 * 2 = 4 
+MOV ax, [bx + si]    ; AX ← mem[BX+SI] = array[4] = 30 
 
- ; AX = 10+20+30+40+50 = 150
- ; Acceso a campo de struct con desplazamiento fijo
- MOV bx, nota1 ; BX = base del "struct" (nota1, nota2, promedio)
- MOV ax, [bx] ; AX = nota1 = 85 (offset 0)
- MOV cx, [bx + 2] ; CX = nota2 = 73 (offset 2)
- MOV dx, [bx + 4] ; DX = promedio = 79 (offset 4)
- INT 20h ; retornar a DOS
+; EXTENSIÓN: RECORRIDO INVERSO DEL ARRAY (Checkpoint 3) 
+
+XOR ax, ax           ; AX = 0 (acumulador para la suma) 
+MOV bx, array        ; BX = dirección base del array 
+MOV cx, 5            ; CX = 5 (número de elementos a procesar) 
+MOV si, 8            ; SI = 8 (apunta al último elemento: array[3] ya que 4 * 2 bytes = 8) 
+
+.bucle_inverso:
+    ADD ax, [bx + si] ; AX += contenido de la dirección calculada [1, 6]
+    SUB si, 2         ; Decremento de 2 bytes para retroceder al elemento anterior [2]
+    LOOP .bucle_inverso ; CX-- y salta si CX > 0 [1, 6]
+
+; Al finalizar este bucle, AX = 50+40+30+20+10 = 150 (0x0096) 
+
+; Acceso a campo de struct con desplazamiento fijo
+MOV bx, nota1        ; BX = base del "struct" 
+MOV ax, [bx]         ; AX = nota1 = 85 
+MOV cx, [bx + 2]     ; CX = nota2 = 73 
+MOV dx, [bx + 4]     ; DX = promedio = 79 
+
+INT 20h              ; Retornar a DOS 
